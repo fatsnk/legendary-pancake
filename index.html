@@ -264,33 +264,65 @@
             );
         }
 
-        async function recoverPresetFromFile(file) {
-            try {
-                const arrayBuffer = await file.arrayBuffer();
-                const uint8Array = new Uint8Array(arrayBuffer);
+async function recoverPresetFromFile(file) {
+    try {
+        const arrayBuffer = await file.arrayBuffer();
+        const uint8Array = new Uint8Array(arrayBuffer);
 
-                const wasmInstance = await initWasm();
-                let decodedData = await decodeRPack(uint8Array, wasmInstance);
-                console.log("1. RPack decoded:", decodedData);
+        let finalData;
 
-                const decompressedData = pako.inflate(decodedData);
-                console.log("2. Decompressed:", decompressedData);
+        if (file.name.endsWith('.risup')) {
+            // 处理 .risup 文件
+            const wasmInstance = await initWasm();
+            const decodedData = await decodeRPack(uint8Array, wasmInstance);
+            console.log("1. RPack decoded:", decodedData);
 
-                const firstDecode = msgpackr.decode(decompressedData);
-                console.log("3. First msgpack decode:", firstDecode);
+            const decompressedData = pako.inflate(decodedData);
+            console.log("2. Decompressed:", decompressedData);
 
-                const decryptedData = await decryptBuffer(firstDecode.preset, 'risupreset');
-                console.log("4. Decrypted data:", new Uint8Array(decryptedData));
+            const firstDecode = msgpackr.decode(decompressedData);
+            console.log("3. First msgpack decode:", firstDecode);
 
-                const finalData = msgpackr.decode(new Uint8Array(decryptedData));
-                console.log("5. Final decoded data:", finalData);
+            const decryptedData = await decryptBuffer(firstDecode.preset, 'risupreset');
+            console.log("4. Decrypted data:", new Uint8Array(decryptedData));
 
-                document.getElementById('output').textContent = JSON.stringify(finalData, null, 2);
-            } catch (error) {
-                console.error('Error recovering preset:', error);
-                document.getElementById('output').textContent = `Error: ${error.message}\n\nStack: ${error.stack}`;
+            finalData = msgpackr.decode(new Uint8Array(decryptedData));
+            console.log("5. Final decoded data:", finalData);
+
+        } else if (file.name.endsWith('.risupreset')) {
+            // 处理 .risupreset 文件
+            const decompressedData = pako.inflate(uint8Array);
+            console.log("1. Decompressed:", decompressedData);
+
+            const firstDecode = msgpackr.decode(decompressedData);
+            console.log("2. First msgpack decode:", firstDecode);
+
+            const encryptedPreset = firstDecode.preset ?? firstDecode.pres;
+            if (!encryptedPreset) {
+                throw new Error("Missing `preset` or `pres` field in .risupreset file.");
             }
+
+            const decryptedData = await decryptBuffer(encryptedPreset, 'risupreset');
+            console.log("3. Decrypted data:", new Uint8Array(decryptedData));
+
+            finalData = msgpackr.decode(new Uint8Array(decryptedData));
+            console.log("4. Final decoded data:", finalData);
+
+        } else {
+            throw new Error('Unsupported file format');
         }
+
+        // 成功解析数据后显示
+        console.log("Final decoded data:", finalData);
+        document.getElementById('output').textContent = JSON.stringify(finalData, null, 2);
+
+    } catch (error) {
+        // 捕获错误并显示
+        console.error('Error recovering preset:', error);
+        document.getElementById('output').textContent = `Error: ${error.message}\n\nStack: ${error.stack}`;
+    }
+}
+
 
         async function createPresetFile(file) {
             try {
