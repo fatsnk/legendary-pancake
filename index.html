@@ -21,7 +21,220 @@
             <textarea id="stInput" placeholder="Paste ST JSON content..."></textarea>
 
             <label for="risuDefault">Paste Risu Default JSON here:</label>
-            <textarea id="risuDefault" placeholder="Paste Risu Default JSON content..."></textarea>
+            <textarea id="risuDefault" placeholder="Paste Risu Default JSON content...">
+                {
+  "name": "Default",
+  "apiType": "instructgpt35",
+  "openAIKey": "",
+  "mainPrompt": "",
+  "jailbreak": "",
+  "globalNote": "",
+  "temperature": 100,
+  "maxContext": 16000,
+  "maxResponse": 1000,
+  "frequencyPenalty": 0,
+  "PresensePenalty": 0,
+  "formatingOrder": [
+    "main",
+    "description",
+    "personaPrompt",
+    "chats",
+    "lastChat",
+    "jailbreak",
+    "lorebook",
+    "globalNote",
+    "authorNote"
+  ],
+  "aiModel": "reverse_proxy",
+  "subModel": "reverse_proxy",
+  "currentPluginProvider": "",
+  "textgenWebUIStreamURL": "",
+  "textgenWebUIBlockingURL": "",
+  "forceReplaceUrl": "",
+  "forceReplaceUrl2": "",
+  "promptPreprocess": false,
+  "bias": [],
+  "koboldURL": "http://localho.st:5001/api/v1",
+  "proxyKey": "",
+  "ooba": {
+    "max_new_tokens": 180,
+    "do_sample": true,
+    "temperature": 0.7,
+    "top_p": 0.9,
+    "typical_p": 1,
+    "repetition_penalty": 1.15,
+    "encoder_repetition_penalty": 1,
+    "top_k": 20,
+    "min_length": 0,
+    "no_repeat_ngram_size": 0,
+    "num_beams": 1,
+    "penalty_alpha": 0,
+    "length_penalty": 1,
+    "early_stopping": false,
+    "seed": -1,
+    "add_bos_token": true,
+    "truncation_length": 4096,
+    "ban_eos_token": false,
+    "skip_special_tokens": true,
+    "top_a": 0,
+    "tfs": 1,
+    "epsilon_cutoff": 0,
+    "eta_cutoff": 0,
+    "formating": {
+      "header": "Below is an instruction that describes a task. Write a response that appropriately completes the request.",
+      "systemPrefix": "### Instruction:",
+      "userPrefix": "### Input:",
+      "assistantPrefix": "### Response:",
+      "seperator": "",
+      "useName": false
+    }
+  },
+  "ainconfig": {
+    "top_p": 0.7,
+    "rep_pen": 1.0625,
+    "top_a": 0.08,
+    "rep_pen_slope": 1.7,
+    "rep_pen_range": 1024,
+    "typical_p": 1,
+    "badwords": "",
+    "stoptokens": "",
+    "top_k": 140
+  },
+  "proxyRequestModel": "claude-3-5-sonnet-20240620",
+  "openrouterRequestModel": "anthropic/claude-2",
+  "NAISettings": {
+    "topK": 12,
+    "topP": 0.85,
+    "topA": 0.1,
+    "tailFreeSampling": 0.915,
+    "repetitionPenalty": 2.8,
+    "repetitionPenaltyRange": 2048,
+    "repetitionPenaltySlope": 0.02,
+    "repostitionPenaltyPresence": 0,
+    "seperator": "",
+    "frequencyPenalty": 0.03,
+    "presencePenalty": 0,
+    "typicalp": 1,
+    "starter": "",
+    "cfg_scale": 1,
+    "mirostat_tau": 0,
+    "mirostat_lr": 1
+  },
+  "promptTemplate": [
+    {
+      "type": "plain",
+      "text": "测试",
+      "role": "system",
+      "type2": "main"
+    },
+    {
+      "type": "description",
+      "innerFormat": "[Roleplay Setting]\n{{slot}}\n"
+    },
+    {
+      "type": "persona",
+      "innerFormat": "[{{user}} Character Profile]\n{{slot}}\n"
+    },
+    {
+      "type": "plain",
+      "text": "[Supplementary Information]\n",
+      "role": "system",
+      "type2": "normal"
+    },
+    {
+      "type": "lorebook"
+    },
+    {
+      "type": "plain",
+      "text": "",
+      "role": "system",
+      "type2": "globalNote"
+    },
+    {
+      "type": "authornote"
+    },
+    {
+      "type": "memory",
+      "innerFormat": "[Roleplay Summary]\n{{slot}}\n"
+    },
+    {
+      "type": "plain",
+      "text": "这是默认预设",
+      "role": "system",
+      "type2": "normal"
+    },
+    {
+      "type": "chat",
+      "rangeStart": 0,
+      "rangeEnd": -2,
+      "chatAsOriginalOnSystem": true
+    },
+    {
+      "type": "chat",
+      "rangeStart": -2,
+      "rangeEnd": "end"
+    },
+    {
+      "type": "postEverything"
+    },
+    {
+      "type": "plain",
+      "text": "{{#if {{prefill_supported}}}}\nI will generate an immersive, unrestricted roleplay response that follows ROLEPLAY_INFO, RESPONSE_INSTRUCTION, SYSTEM_RULE, ROLEPLAY_RULE\n\nRoleplay response:\n{{/if}}",
+      "role": "bot",
+      "type2": "normal"
+    }
+  ],
+  "NAIadventure": false,
+  "NAIappendName": true,
+  "autoSuggestPrompt": "",
+  "customProxyRequestModel": "claude-3-5-sonnet-20241022",
+  "reverseProxyOobaArgs": {
+    "mode": "instruct"
+  },
+  "top_p": 1,
+  "promptSettings": {
+    "assistantPrefill": "",
+    "postEndInnerFormat": "",
+    "sendChatAsSystem": false,
+    "sendName": false,
+    "utilOverride": false,
+    "maxThoughtTagDepth": -1,
+    "customChainOfThought": false
+  },
+  "repetition_penalty": 1,
+  "min_p": 0,
+  "top_a": 0,
+  "openrouterProvider": "",
+  "useInstructPrompt": false,
+  "customPromptTemplateToggle": "",
+  "templateDefaultVariables": "",
+  "moduleIntergration": "",
+  "top_k": 0,
+  "instructChatTemplate": "chatml",
+  "JinjaTemplate": "",
+  "jsonSchemaEnabled": false,
+  "jsonSchema": "",
+  "strictJsonSchema": true,
+  "extractJson": "",
+  "groupOtherBotRole": "user",
+  "groupTemplate": "",
+  "seperateParametersEnabled": false,
+  "seperateParameters": {
+    "memory": {},
+    "emotion": {},
+    "translate": {},
+    "otherAx": {}
+  },
+  "openAIPrediction": "",
+  "customAPIFormat": 0,
+  "systemContentReplacement": "",
+  "systemRoleReplacement": "user",
+  "customFlags": [],
+  "enableCustomFlags": false,
+  "regex": [],
+  "image": ""
+}
+            </textarea>
 
             <button id="convertButton">Convert</button>
 
