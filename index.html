@@ -11,9 +11,30 @@
         .output { margin-top: 20px; }
         pre { white-space: pre-wrap; }
         .tool-section { margin-bottom: 30px; padding: 20px; border: 1px solid #ddd; }
+                /* 让链接浮动到右上角 */
+        .top-right-link {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        /* 鼠标悬停时改变颜色 */
+        .top-right-link:hover {
+            background-color: #0056b3;
+        }
     </style>
 </head>
 <body>
+    <!-- 页面右上角的链接 -->
+    <a href="./mobile.html" class="top-right-link" target="_blank">
+        移动版页面
+    </a>
     <div class="container">
         <div class="tool-section">
             <h1>ST to Risu Converter</h1>
