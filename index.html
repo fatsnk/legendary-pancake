@@ -239,8 +239,10 @@
             <button id="convertButton">Convert</button>
 
             <div class="output">
-                <h2>Converted Risu JSON:</h2>
-                <pre id="stOutput"></pre>
+                <h2>Converted Risu JSON:</h2>                
+        	  <button id="copyButton">Copy</button>
+        	  <button id="saveButton">Save as JSON</button>
+        	  <pre id="stOutput"></pre>
             </div>
         </div>
 
@@ -263,6 +265,34 @@
     </div>
 
     <script>
+    
+        // Copy button functionality
+    document.getElementById("copyButton").addEventListener("click", function() {
+        const outputText = document.getElementById("stOutput").textContent;
+        navigator.clipboard.writeText(outputText).then(function() {
+            alert("Copied to clipboard!");
+        }).catch(function(err) {
+            alert("Failed to copy text: " + err);
+        });
+    });
+
+    // Save as JSON button functionality
+    document.getElementById("saveButton").addEventListener("click", function() {
+        const outputText = document.getElementById("stOutput").textContent;
+
+        // Ensure the output is valid JSON
+        try {
+            const jsonObject = JSON.parse(outputText); // Validate JSON format
+            const blob = new Blob([JSON.stringify(jsonObject, null, 2)], { type: 'application/json' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'converted_risu.json'; // File name
+            link.click();
+        } catch (error) {
+            alert("The output is not valid JSON.");
+        }
+    });
+    
         // ST to Risu Converter Logic
         document.getElementById('convertButton').addEventListener('click', function convert() {
             try {
