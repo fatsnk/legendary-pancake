@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RISU File Tools</title>
+    <script src="./pako.min.js"></script>
+    <script src="./msgpackr.min.js"></script>
+    <style>
+        /* 保持之前的所有样式不变 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            padding: 1rem;
+            background-color: #f5f5f5;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem;
+        }
+
+        .tool-section {
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            color: #333;
+            margin-bottom: 1rem;
+        }
+
+        h2 {
+            font-size: 1.2rem;
+            color: #444;
+            margin: 1rem 0;
+        }
+
+        .input-group {
+            margin-bottom: 1rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #555;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 150px;
+            padding: 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            resize: vertical;
+            font-family: monospace;
+            margin-bottom: 1rem;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin: 1rem 0;
+        }
+
+        button {
+            padding: 0.6rem 1.2rem;
+            border: none;
+            border-radius: 4px;
+            background-color: #007bff;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .file-input-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        input[type="file"] {
+            max-width: 100%;
+        }
+
+        .output {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 4px;
+        }
+
+        pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            padding: 1rem;
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            overflow-x: auto;
+        }
+
+        @media screen and (max-width: 768px) {
+            .container {
+                padding: 0.5rem;
+            }
+
+            .tool-section {
+                padding: 1rem;
+            }
+
+            h1 {
+                font-size: 1.3rem;
+            }
+
+            h2 {
+                font-size: 1.1rem;
+            }
+
+            button {
+                width: 100%;
+                margin-bottom: 0.5rem;
+            }
+
+            .file-input-wrapper {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            input[type="file"] {
+                width: 100%;
+            }
+
+            textarea {
+                min-height: 120px;
+            }
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 1rem 0;
+        }
+
+        .loading.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="tool-section">
+            <h1>ST to Risu Converter</h1>
+            <div class="input-group">
+                <label for="stInput">Paste ST JSON here:</label>
+                <div class="file-input-wrapper">
+                    <button id="stfileSelectButton">Choose File</button>
+                    <input type="file" id="stfileInput" accept=".txt,.json" style="display:none;" />
+                </div>
+                <textarea id="stInput" placeholder="Paste ST JSON content..."></textarea>
+            </div>
+
+            <div class="input-group">
+                <label for="risuDefault">Paste Risu Default JSON here:</label>
+                <textarea id="risuDefault" placeholder="Paste Risu Default JSON content...">{
+  "name": "Default",
+  "apiType": "instructgpt35",
+  "openAIKey": "",
+  "mainPrompt": "",
+  "jailbreak": "",
+  "globalNote": "",
+  "temperature": 100,
+  "maxContext": 16000,
+  "maxResponse": 1000,
+  "frequencyPenalty": 0,
+  "PresensePenalty": 0,
+  "formatingOrder": [
+    "main",
+    "description",
+    "personaPrompt",
+    "chats",
+    "lastChat",
+    "jailbreak",
+    "lorebook",
+    "globalNote",
+    "authorNote"
+  ],
+  "aiModel": "reverse_proxy",
+  "subModel": "reverse_proxy",
+  "currentPluginProvider": "",
+  "textgenWebUIStreamURL": "",
+  "textgenWebUIBlockingURL": "",
+  "forceReplaceUrl": "",
+  "forceReplaceUrl2": "",
+  "promptPreprocess": false,
+  "bias": [],
+  "koboldURL": "http://localho.st:5001/api/v1",
+  "proxyKey": "",
+  "ooba": {
+    "max_new_tokens": 180,
+    "do_sample": true,
+    "temperature": 0.7,
+    "top_p": 0.9,
+    "typical_p": 1,
+    "repetition_penalty": 1.15,
+    "encoder_repetition_penalty": 1,
+    "top_k": 20,
+    "min_length": 0,
+    "no_repeat_ngram_size": 0,
+    "num_beams": 1,
+    "penalty_alpha": 0,
+    "length_penalty": 1,
+    "early_stopping": false,
+    "seed": -1,
+    "add_bos_token": true,
+    "truncation_length": 4096,
+    "ban_eos_token": false,
+    "skip_special_tokens": true,
+    "top_a": 0,
+    "tfs": 1,
+    "epsilon_cutoff": 0,
+    "eta_cutoff": 0,
+    "formating": {
+      "header": "Below is an instruction that describes a task. Write a response that appropriately completes the request.",
+      "systemPrefix": "### Instruction:",
+      "userPrefix": "### Input:",
+      "assistantPrefix": "### Response:",
+      "seperator": "",
+      "useName": false
+    }
+  },
+  "ainconfig": {
+    "top_p": 0.7,
+    "rep_pen": 1.0625,
+    "top_a": 0.08,
+    "rep_pen_slope": 1.7,
+    "rep_pen_range": 1024,
+    "typical_p": 1,
+    "badwords": "",
+    "stoptokens": "",
+    "top_k": 140
+  },
+  "proxyRequestModel": "claude-3-5-sonnet-20240620",
+  "openrouterRequestModel": "anthropic/claude-2",
+  "NAISettings": {
+    "topK": 12,
+    "topP": 0.85,
+    "topA": 0.1,
+    "tailFreeSampling": 0.915,
+    "repetitionPenalty": 2.8,
+    "repetitionPenaltyRange": 2048,
+    "repetitionPenaltySlope": 0.02,
+    "repostitionPenaltyPresence": 0,
+    "seperator": "",
+    "frequencyPenalty": 0.03,
+    "presencePenalty": 0,
+    "typicalp": 1,
+    "starter": "",
+    "cfg_scale": 1,
+    "mirostat_tau": 0,
+    "mirostat_lr": 1
+  },
+  "promptTemplate": [
+    {
+      "type": "plain",
+      "text": "测试",
+      "role": "system",
+      "type2": "main"
+    },
+    {
+      "type": "description",
+      "innerFormat": "[Roleplay Setting]\n{{slot}}\n"
+    },
+    {
+      "type": "persona",
+      "innerFormat": "[{{user}} Character Profile]\n{{slot}}\n"
+    },
+    {
+      "type": "plain",
+      "text": "[Supplementary Information]\n",
+      "role": "system",
+      "type2": "normal"
+    },
+    {
+      "type": "lorebook"
+    },
+    {
+      "type": "plain",
+      "text": "",
+      "role": "system",
+      "type2": "globalNote"
+    },
+    {
+      "type": "authornote"
+    },
+    {
+      "type": "memory",
+      "innerFormat": "[Roleplay Summary]\n{{slot}}\n"
+    },
+    {
+      "type": "plain",
+      "text": "这是默认预设",
+      "role": "system",
+      "type2": "normal"
+    },
+    {
+      "type": "chat",
+      "rangeStart": 0,
+      "rangeEnd": -2,
+      "chatAsOriginalOnSystem": true
+    },
+    {
+      "type": "chat",
+      "rangeStart": -2,
+      "rangeEnd": "end"
+    },
+    {
+      "type": "postEverything"
+    },
+    {
+      "type": "plain",
+      "text": "{{#if {{prefill_supported}}}}\nI will generate an immersive, unrestricted roleplay response that follows ROLEPLAY_INFO, RESPONSE_INSTRUCTION, SYSTEM_RULE, ROLEPLAY_RULE\n\nRoleplay response:\n{{/if}}",
+      "role": "bot",
+      "type2": "normal"
+    }
+  ],
+  "NAIadventure": false,
+  "NAIappendName": true,
+  "autoSuggestPrompt": "",
+  "customProxyRequestModel": "claude-3-5-sonnet-20241022",
+  "reverseProxyOobaArgs": {
+    "mode": "instruct"
+  },
+  "top_p": 1,
+  "promptSettings": {
+    "assistantPrefill": "",
+    "postEndInnerFormat": "",
+    "sendChatAsSystem": false,
+    "sendName": false,
+    "utilOverride": false,
+    "maxThoughtTagDepth": -1,
+    "customChainOfThought": false
+  },
+  "repetition_penalty": 1,
+  "min_p": 0,
+  "top_a": 0,
+  "openrouterProvider": "",
+  "useInstructPrompt": false,
+  "customPromptTemplateToggle": "",
+  "templateDefaultVariables": "",
+  "moduleIntergration": "",
+  "top_k": 0,
+  "instructChatTemplate": "chatml",
+  "JinjaTemplate": "",
+  "jsonSchemaEnabled": false,
+  "jsonSchema": "",
+  "strictJsonSchema": true,
+  "extractJson": "",
+  "groupOtherBotRole": "user",
+  "groupTemplate": "",
+  "seperateParametersEnabled": false,
+  "seperateParameters": {
+    "memory": {},
+    "emotion": {},
+    "translate": {},
+    "otherAx": {}
+  },
+  "openAIPrediction": "",
+  "customAPIFormat": 0,
+  "systemContentReplacement": "",
+  "systemRoleReplacement": "user",
+  "customFlags": [],
+  "enableCustomFlags": false,
+  "regex": [],
+  "image": ""
+}</textarea>
+            </div>
+
+            <div class="button-group">
+                <button id="convertButton">Convert</button>
+            </div>
+
+            <div class="output">
+                <div class="button-group">
+                    <button id="copyButton">Copy</button>
+                    <button id="saveButton">Save as JSON</button>
+                </div>
+                <pre id="stOutput"></pre>
+            </div>
+        </div>
+
+        <div class="tool-section">
+            <h1>RISU Preset File Tools</h1>
+            <div class="input-group">
+                <h2>Decrypt RISU Preset</h2>
+                <div class="file-input-wrapper">
+                    <input type="file" id="fileInput" accept=".risupreset,.risup"/>
+                    <button id="recoverButton">Recover Preset</button>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <h2>Encrypt to RISU Preset</h2>
+                <div class="file-input-wrapper">
+                    <input type="file" id="jsonInput" accept=".json"/>
+                    <button id="encryptButton">Create .risup</button>
+                </div>
+            </div>
+
+            <div class="loading" id="loadingIndicator">Processing...</div>
+            <pre id="output"></pre>
+        </div>
+    </div>
+
+    <script>
+        //st文件选择
+        document.getElementById("stfileSelectButton").addEventListener("click", function() {
+            // 触发文件选择框
+            document.getElementById("stfileInput").click();
+        });
+
+        // 处理文件选择和读取内容
+        document.getElementById("stfileInput").addEventListener("change", function(event) {
+            const file = event.target.files[0]; // 获取选择的第一个文件
+
+            if (file) {
+                const reader = new FileReader();
+
+                // 文件读取成功后的回调
+                reader.onload = function(e) {
+                    const fileContent = e.target.result;
+                    document.getElementById("stInput").value = fileContent; // 填充到textarea中
+                };
+
+                // 读取文件内容
+                reader.readAsText(file); // 读取文件为文本
+            }
+        });
+    
+        // Copy button functionality
+        document.getElementById("copyButton").addEventListener("click", function() {
+            const outputText = document.getElementById("stOutput").textContent;
+            navigator.clipboard.writeText(outputText).then(function() {
+                alert("Copied to clipboard!");
+            }).catch(function(err) {
+                alert("Failed to copy text: " + err);
+            });
+        });
+// 接着前面的script标签内容继续添加代码:
+
+        // Save as JSON button functionality
+        document.getElementById("saveButton").addEventListener("click", function() {
+            const outputText = document.getElementById("stOutput").textContent;
+
+            // Ensure the output is valid JSON
+            try {
+                const jsonObject = JSON.parse(outputText); // Validate JSON format
+                const blob = new Blob([JSON.stringify(jsonObject, null, 2)], { type: 'application/json' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = 'converted_risu.json'; // File name
+                link.click();
+            } catch (error) {
+                alert("The output is not valid JSON.");
+            }
+        });
+    
+        // ST to Risu Converter Logic
+        document.getElementById('convertButton').addEventListener('click', function convert() {
+            try {
+                const stInput = JSON.parse(document.getElementById('stInput').value);
+                const risuDefault = JSON.parse(document.getElementById('risuDefault').value);
+
+                if (!stInput || !risuDefault) {
+                    throw new Error('Invalid JSON input.');
+                }
+
+                const promptOrder = stInput.prompt_order.find(order => order.character_id === 100001);
+                if (!promptOrder) {
+                    throw new Error('Character ID 100001 not found in ST prompt_order.');
+                }
+
+                const stPrompts = stInput.prompts;
+                const risuPrompts = risuDefault.promptTemplate;
+
+                const specialTypeOrder = ["description", "persona", "lorebook", "globalNote", "authornote", "memory", "chat"];
+                const specialTemplates = [];
+
+                specialTypeOrder.forEach(type => {
+                    const templates = risuPrompts.filter(p => p.type === type || p.type2 === type);
+                    if (templates.length > 0) {
+                        specialTemplates.push(...templates);
+                    } else {
+                        if (type === "chat") {
+                            const chatTemplates = risuPrompts.filter(p => p.type === "chat");
+                            if (chatTemplates.length < 2) {
+                                specialTemplates.push(...chatTemplates);
+                            }
+                        } else {
+                            throw new Error(`Missing required special type: ${type}`);
+                        }
+                    }
+                });
+
+                const convertedPrompts = [];
+                const stPromptMap = new Map(stPrompts.map(p => [p.identifier, p]));
+
+                let mainPrompt;
+
+                promptOrder.order.forEach(({ identifier, enabled }) => {
+                    if (!enabled) return;
+
+                    if (identifier === "main") {
+                        const mainPromptData = stPromptMap.get(identifier);
+                        if (mainPromptData) {
+                            const template = risuPrompts.find(p => p.type2 === "main");
+                            if (template) {
+                                mainPrompt = {
+                                    ...template,
+                                    text: mainPromptData.content || "未命名"
+                                };
+                            }
+                        }
+                        return;
+                    }
+
+                    if (["charDescription", "dialogueExamples", "charPersonality", "scenario", "worldInfoBefore", "worldInfoAfter"].includes(identifier)) {
+                        return;
+                    }
+
+                    const stPrompt = stPromptMap.get(identifier);
+                    if (!stPrompt) {
+                        console.warn(`Prompt with identifier ${identifier} not found, skipping.`);
+                        return;
+                    }
+
+                    const name = stPrompt.name || "未命名";
+                    convertedPrompts.push({
+                        type: "plain",
+                        text: stPrompt.content || "\n",
+                        role: stPrompt.role,
+                        type2: "normal",
+                        name
+                    });
+                });
+
+                const charDescriptionIndex = promptOrder.order.findIndex(o => o.identifier === "charDescription");
+                if (charDescriptionIndex === -1) {
+                    throw new Error('charDescription not found in prompt_order.');
+                }
+
+                const filteredSpecialTemplates = [
+                    risuPrompts.find(p => p.type === "description"),
+                    mainPrompt,
+                    ...specialTemplates.filter(p => p.type !== "description" && p.type2 !== "main")
+                ];
+
+                const result = [
+                    ...convertedPrompts.slice(0, charDescriptionIndex),
+                    ...filteredSpecialTemplates,
+                    ...convertedPrompts.slice(charDescriptionIndex)
+                ].filter(Boolean);
+
+                risuDefault.promptTemplate = result;
+
+                document.getElementById('stOutput').textContent = JSON.stringify(risuDefault, null, 2);
+            } catch (error) {
+                document.getElementById('stOutput').textContent = `Error: ${error.message}`;
+            }
+        });
+
+        // RISU Preset File Tools Logic
+        async function initWasm() {
+            try {
+                const response = await fetch('./rpack_bg.wasm');
+                if (!response.ok) throw new Error('Failed to fetch Wasm module');
+                const wasmModule = await response.arrayBuffer();
+                if (!WebAssembly.validate(wasmModule)) throw new Error('Invalid WebAssembly module');
+                const { instance } = await WebAssembly.instantiate(wasmModule);
+                return instance.exports;
+            } catch (error) {
+                console.error('Error initializing Wasm module:', error);
+                throw error;
+            }
+        }
+
+        function getUint8ArrayMemory0(wasmInstance) {
+            return new Uint8Array(wasmInstance.memory.buffer);
+        }
+
+        function passArray8ToWasm0(arg, malloc, wasmInstance) {
+            const ptr = malloc(arg.length * 1, 1) >>> 0;
+            getUint8ArrayMemory0(wasmInstance).set(arg, ptr / 1);
+            WASM_VECTOR_LEN = arg.length;
+            return ptr;
+        }
+
+        let WASM_VECTOR_LEN = 0;
+
+        function getDataViewMemory0(wasmInstance) {
+            return new DataView(wasmInstance.memory.buffer);
+        }
+
+        function getArrayU8FromWasm0(ptr, len, wasmInstance) {
+            return getUint8ArrayMemory0(wasmInstance).subarray(ptr / 1, ptr / 1 + len);
+        }
+
+        async function decodeRPack(datas, wasmInstance) {
+            try {
+                const retptr = wasmInstance.__wbindgen_add_to_stack_pointer(-16);
+                const ptr0 = passArray8ToWasm0(datas, wasmInstance.__wbindgen_malloc, wasmInstance);
+                const len0 = WASM_VECTOR_LEN;
+                wasmInstance.decode(retptr, ptr0, len0);
+                var r0 = getDataViewMemory0(wasmInstance).getInt32(retptr + 4 * 0, true);
+                var r1 = getDataViewMemory0(wasmInstance).getInt32(retptr + 4 * 1, true);
+                var v2 = getArrayU8FromWasm0(r0, r1, wasmInstance).slice();
+                wasmInstance.__wbindgen_free(r0, r1 * 1, 1);
+                return v2;
+            } finally {
+                wasmInstance.__wbindgen_add_to_stack_pointer(16);
+            }
+        }
+
+        async function encodeRPack(datas, wasmInstance) {
+            try {
+                const retptr = wasmInstance.__wbindgen_add_to_stack_pointer(-16);
+                const ptr0 = passArray8ToWasm0(datas, wasmInstance.__wbindgen_malloc, wasmInstance);
+                const len0 = WASM_VECTOR_LEN;
+                wasmInstance.encode(retptr, ptr0, len0);
+                var r0 = getDataViewMemory0(wasmInstance).getInt32(retptr + 4 * 0, true);
+                var r1 = getDataViewMemory0(wasmInstance).getInt32(retptr + 4 * 1, true);
+                var v2 = getArrayU8FromWasm0(r0, r1, wasmInstance).slice();
+                wasmInstance.__wbindgen_free(r0, r1 * 1, 1);
+                return v2;
+            } finally {
+                wasmInstance.__wbindgen_add_to_stack_pointer(16);
+            }
+        }
+
+        async function decryptBuffer(data, key) {
+            const encoder = new TextEncoder();
+            const keyData = encoder.encode(key);
+            const hash = await window.crypto.subtle.digest("SHA-256", keyData);
+            const cryptoKey = await window.crypto.subtle.importKey(
+                "raw",
+                hash,
+                "AES-GCM",
+                false,
+                ["decrypt"]
+            );
+            return await window.crypto.subtle.decrypt(
+                {
+                    name: "AES-GCM",
+                    iv: new Uint8Array(12)
+                },
+                cryptoKey,
+                data
+            );
+        }
+
+        async function encryptBuffer(data, key) {
+            const encoder = new TextEncoder();
+            const keyData = encoder.encode(key);
+            const hash = await window.crypto.subtle.digest("SHA-256", keyData);
+            const cryptoKey = await window.crypto.subtle.importKey(
+                "raw",
+                hash,
+                "AES-GCM",
+                false,
+                ["encrypt"]
+            );
+            return await window.crypto.subtle.encrypt(
+                {
+                    name: "AES-GCM",
+                    iv: new Uint8Array(12)
+                },
+                cryptoKey,
+                data
+            );
+        }
+
+        async function recoverPresetFromFile(file) {
+            try {
+                showLoading();
+                const arrayBuffer = await file.arrayBuffer();
+                const uint8Array = new Uint8Array(arrayBuffer);
+
+                let finalData;
+
+                if (file.name.endsWith('.risup')) {
+                    const wasmInstance = await initWasm();
+                    const decodedData = await decodeRPack(uint8Array, wasmInstance);
+                    console.log("1. RPack decoded:", decodedData);
+
+                    const decompressedData = pako.inflate(decodedData);
+                    console.log("2. Decompressed:", decompressedData);
+
+                    const firstDecode = msgpackr.decode(decompressedData);
+                    console.log("3. First msgpack decode:", firstDecode);
+
+                    const decryptedData = await decryptBuffer(firstDecode.preset, 'risupreset');
+                    console.log("4. Decrypted data:", new Uint8Array(decryptedData));
+
+                    finalData = msgpackr.decode(new Uint8Array(decryptedData));
+                    console.log("5. Final decoded data:", finalData);
+
+                } else if (file.name.endsWith('.risupreset')) {
+                    const decompressedData = pako.inflate(uint8Array);
+                    console.log("1. Decompressed:", decompressedData);
+
+                    const firstDecode = msgpackr.decode(decompressedData);
+                    console.log("2. First msgpack decode:", firstDecode);
+
+                    const encryptedPreset = firstDecode.preset ?? firstDecode.pres;
+                    if (!encryptedPreset) {
+                        throw new Error("Missing `preset` or `pres` field in .risupreset file.");
+                    }
+
+                    const decryptedData = await decryptBuffer(encryptedPreset, 'risupreset');
+                    console.log("3. Decrypted data:", new Uint8Array(decryptedData));
+
+                    finalData = msgpackr.decode(new Uint8Array(decryptedData));
+                    console.log("4. Final decoded data:", finalData);
+                } else {
+                    throw new Error('Unsupported file format');
+                }
+
+                document.getElementById('output').textContent = JSON.stringify(finalData, null, 2);
+            } catch (error) {
+                console.error('Error recovering preset:', error);
+                document.getElementById('output').textContent = `Error: ${error.message}\n\nStack: ${error.stack}`;
+            } finally {
+                hideLoading();
+            }
+        }
+
+        async function createPresetFile(file) {
+            try {
+                showLoading();
+                const text = await file.text();
+                const jsonData = JSON.parse(text);
+
+                const firstEncode = msgpackr.encode(jsonData);
+                console.log("1. First msgpack encode:", firstEncode);
+
+                const encryptedData = await encryptBuffer(firstEncode, 'risupreset');
+                console.log("2. Encrypted data:", new Uint8Array(encryptedData));
+
+                const wrapper = {
+                    presetVersion: 2,
+                    type: "preset",
+                    preset: new Uint8Array(encryptedData)
+                };
+                const secondEncode = msgpackr.encode(wrapper);
+                console.log("3. Second msgpack encode:", secondEncode);
+
+                const compressedData = pako.deflate(secondEncode);
+                console.log("4. Compressed:", compressedData);
+
+                const wasmInstance = await initWasm();
+                const rpackData = await encodeRPack(compressedData, wasmInstance);
+                console.log("5. RPack encoded:", rpackData);
+
+                const blob = new Blob([rpackData], { type: 'application/octet-stream' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = file.name.replace('.json', '.risup');
+                a.click();
+                URL.revokeObjectURL(url);
+
+                document.getElementById('output').textContent = "Preset file created successfully!";
+            } catch (error) {
+                console.error('Error creating preset:', error);
+                document.getElementById('output').textContent = `Error: ${error.message}\n\nStack: ${error.stack}`;
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // 添加loading状态控制
+        function showLoading() {
+            document.getElementById('loadingIndicator').classList.add('active');
+        }
+
+        function hideLoading() {
+            document.getElementById('loadingIndicator').classList.remove('active');
+        }
+
+        // Attach event listeners for the file buttons
+        document.getElementById('recoverButton').addEventListener('click', () => {
+            const fileInput = document.getElementById('fileInput');
+            const file = fileInput.files[0];
+            if (file) {
+                recoverPresetFromFile(file);
+            } else {
+                document.getElementById('output').textContent = 'Please select a file first.';
+            }
+        });
+
+        document.getElementById('encryptButton').addEventListener('click', () => {
+            const fileInput = document.getElementById('jsonInput');
+            const file = fileInput.files[0];
+            if (file) {
+                createPresetFile(file);
+            } else {
+                document.getElementById('output').textContent = 'Please select a JSON file first.';
+            }
+        });
+    </script>
+</body>
+</html>
