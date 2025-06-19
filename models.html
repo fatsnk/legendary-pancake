@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenAI Compatible Models</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 15px;
+            max-width: 100%;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            font-size: 1.8rem;
+        }
+        h2 {
+            font-size: 1.4rem;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        li {
+            background: #f4f4f4;
+            margin: 5px 0;
+            padding: 10px;
+            border-radius: 5px;
+            word-break: break-word;
+        }
+        .error {
+            color: red;
+        }
+        .success {
+            color: green;
+        }
+        .loading {
+            color: orange;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="text"], input[type="password"] {
+            width: 100%;
+            padding: 10px 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 1rem;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #providers-container {
+            margin-top: 20px;
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 5px;
+        }
+        .provider-entry {
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px dashed #ccc;
+        }
+        .provider-field {
+            margin-bottom: 10px;
+        }
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        @media (max-width: 768px) {
+            .button-group {
+                flex-direction: column;
+            }
+            button {
+                width: 100%;
+                margin-bottom: 5px;
+            }
+        }
+        .remove-btn {
+            background-color: #f44336;
+        }
+        .remove-btn:hover {
+            background-color: #d32f2f;
+        }
+        .fetch-btn {
+            background-color: #2196F3;
+        }
+        .fetch-btn:hover {
+            background-color: #0b7dda;
+        }
+        .results-container {
+            margin-top: 20px;
+        }
+        .provider-result {
+            margin-bottom: 20px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>OpenAI Compatible Models</h1>
+
+    <div id="providers-container">
+        <h2>API Providers</h2>
+        <div id="providers-list">
+            <!-- Provider entries will be added here -->
+            <div class="provider-entry">
+                <div class="provider-field">
+                    <label for="provider-name-0">Provider Name:</label>
+                    <input type="text" id="provider-name-0" class="provider-name" placeholder="Provider Name">
+                </div>
+                <div class="provider-field">
+                    <label for="provider-url-0">API URL:</label>
+                    <input type="text" id="provider-url-0" class="provider-url" placeholder="https://api.example.com/v1/models">
+                </div>
+                <div class="provider-field">
+                    <label for="api-key-0">API Key:</label>
+                    <input type="password" id="api-key-0" class="api-key" placeholder="Enter API key for this provider">
+                </div>
+                <div class="button-group">
+                    <button class="fetch-btn">Fetch Models</button>
+                    <button class="remove-btn">Remove</button>
+                </div>
+            </div>
+        </div>
+        <button id="add-provider">Add Provider</button>
+    </div>
+
+    <div id="model-list" class="results-container">
+        <!-- Models will be loaded here -->
+    </div>
+</div>
+<script>
+    // DOM Elements
+    const providersList = document.getElementById('providers-list');
+    const addProviderBtn = document.getElementById('add-provider');
+    const modelListDiv = document.getElementById('model-list');
+    let providerCounter = 1; // Start at 1 because 0 is already used
+
+    // Add event listeners
+    addProviderBtn.addEventListener('click', addProviderEntry);
+    
+    // Initialize event listeners for existing elements
+    initializeProviderEventListeners(document.querySelector('.provider-entry'));
+
+    // Function to add a new provider entry
+    function addProviderEntry() {
+        const providerEntry = document.createElement('div');
+        providerEntry.className = 'provider-entry';
+        providerEntry.innerHTML = `
+            <div class="provider-field">
+                <label for="provider-name-${providerCounter}">Provider Name:</label>
+                <input type="text" id="provider-name-${providerCounter}" class="provider-name" placeholder="Provider Name">
+            </div>
+            <div class="provider-field">
+                <label for="provider-url-${providerCounter}">API URL:</label>
+                <input type="text" id="provider-url-${providerCounter}" class="provider-url" placeholder="https://api.example.com/v1/models">
+            </div>
+            <div class="provider-field">
+                <label for="api-key-${providerCounter}">API Key:</label>
+                <input type="password" id="api-key-${providerCounter}" class="api-key" placeholder="Enter API key for this provider">
+            </div>
+            <div class="button-group">
+                <button class="fetch-btn">Fetch Models</button>
+                <button class="remove-btn">Remove</button>
+            </div>
+        `;
+        providersList.appendChild(providerEntry);
+        
+        // Add event listeners to the new provider entry
+        initializeProviderEventListeners(providerEntry);
+        
+        // Increment counter for next provider
+        providerCounter++;
+    }
+
+    // Function to initialize all event listeners for a provider entry
+    function initializeProviderEventListeners(providerEntry) {
+        // Add event listener to the fetch button
+        providerEntry.querySelector('.fetch-btn').addEventListener('click', function() {
+            fetchProviderModels(providerEntry);
+        });
+        
+        // Add event listener to the remove button
+        providerEntry.querySelector('.remove-btn').addEventListener('click', function() {
+            removeProviderEntry(providerEntry);
+        });
+    }
+
+    // Function to remove a provider entry
+    function removeProviderEntry(entry) {
+        // Don't allow removing if it's the last entry
+        if (document.querySelectorAll('.provider-entry').length > 1) {
+            entry.remove();
+        } else {
+            // Clear the inputs instead of removing
+            entry.querySelectorAll('input').forEach(input => {
+                input.value = '';
+            });
+            
+            // Clear any results for this provider
+            const providerName = entry.querySelector('.provider-name').value;
+            if (providerName) {
+                const resultElements = document.querySelectorAll('.provider-result');
+                resultElements.forEach(element => {
+                    if (element.querySelector('h2').textContent === providerName) {
+                        element.remove();
+                    }
+                });
+            }
+        }
+    }
+
+    // Function to fetch models for a specific provider
+    function fetchProviderModels(providerEntry) {
+        const nameInput = providerEntry.querySelector('.provider-name');
+        const urlInput = providerEntry.querySelector('.provider-url');
+        const apiKeyInput = providerEntry.querySelector('.api-key');
+
+        const providerName = nameInput.value.trim();
+        const providerUrl = urlInput.value.trim();
+        const apiKey = apiKeyInput.value.trim();
+
+        // Validate inputs
+        if (!providerName) {
+            alert('Please enter a provider name');
+            return;
+        }
+        if (!providerUrl) {
+            alert('Please enter a provider URL');
+            return;
+        }
+        if (!apiKey) {
+            alert('Please enter an API key for this provider');
+            return;
+        }
+
+        // Remove any existing results for this provider
+        const existingResults = document.querySelectorAll('.provider-result');
+        existingResults.forEach(result => {
+            if (result.querySelector('h2').textContent === providerName) {
+                result.remove();
+            }
+        });
+
+        // Create a new result container
+        const providerResult = document.createElement('div');
+        providerResult.className = 'provider-result';
+        providerResult.innerHTML = `<h2>${providerName}</h2><p class="loading">Loading models...</p>`;
+        modelListDiv.appendChild(providerResult);
+
+        // Fetch the models
+        fetchModels(providerUrl, providerName, apiKey, providerResult);
+    }
+
+    // Function to fetch models from the API
+    function fetchModels(url, providerName, apiKey, providerResult) {
+        fetch(url, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${apiKey}`,
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error ${response.status}: ${response.statusText}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data && Array.isArray(data.data)) {
+                displayModels(data.data, providerResult);
+            } else {
+                throw new Error('Invalid or unexpected response format');
+            }
+        })
+        .catch(error => {
+            providerResult.innerHTML = `<h2>${providerName}</h2><p class="error">Error: ${error.message}</p>`;
+        });
+    }
+
+    // Function to display models in the result container
+    function displayModels(models, providerResult) {
+        const providerName = providerResult.querySelector('h2').textContent;
+        
+        if (models.length === 0) {
+            providerResult.innerHTML = `<h2>${providerName}</h2><p class="success">No models found</p>`;
+            return;
+        }
+
+        let modelListHTML = `<h2>${providerName}</h2><p class="success">Found ${models.length} models</p><ul>`;
+        
+        models.forEach(model => {
+            const modelName = model.id || 'Unnamed model';
+            modelListHTML += `<li>${modelName}</li>`;
+        });
+        
+        modelListHTML += '</ul>';
+        providerResult.innerHTML = modelListHTML;
+    }
+</script>
+
+</body>
+</html>
