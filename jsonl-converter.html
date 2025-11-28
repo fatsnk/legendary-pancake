@@ -21,7 +21,7 @@
             padding: 20px;
         }
 
-        .container {
+        。container {
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
             border-radius: 20px;
@@ -483,7 +483,7 @@
 
         // 下载文件
         function downloadFile(content, filename) {
-            const blob = new Blob([content], { type: 'application/json' });
+            const blob = new Blob([content], { type: 'text/plain' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
